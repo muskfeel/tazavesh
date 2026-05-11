@@ -1,0 +1,45 @@
+{
+  "name": "tazavesh",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-28",
+  "compatibility_flags": ["nodejs_compat"],
+  
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "AGENT",
+        "class_name": "AgentDO"
+      }
+    ]
+  },
+  
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["AgentDO"]
+    }
+  ],
+  
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "5d4eb201d8d8402d9a4e97c0683571de"
+    }
+  ],
+  
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tazavesh-db",
+      "database_id": "5f9388f2-87ac-4c8d-8937-5a3d07e00d5e"
+    }
+  ],
+  
+  "ai": {
+    "binding": "AI"
+  },
+  
+  "vars": {
+    "ENVIRONMENT": "production"
+  }
+}
