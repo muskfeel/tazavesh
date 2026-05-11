@@ -40,7 +40,7 @@ Tazavesh 是一个基于 **Cloudflare Workers** 构建的生产级、多平台 A
 
 **[👉 立即体验 Tazavesh](https://tazavesh.agent-gateway.workers.dev/chat)**
 
-无需安装，直接访问即可对话。基于 Cloudflare Workers AI (Llama 3.1)，完全免费。
+直接访问体验项目。
 
 ---
 
