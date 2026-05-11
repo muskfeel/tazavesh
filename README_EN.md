@@ -36,6 +36,12 @@ Tazavesh is a production-grade, multi-platform AI agent framework built on **Clo
 <tr><td><b>☁️ Zero Cost</b></td><td>Cloudflare Workers free tier: 100K requests/day, 10GB D1 storage — completely free.</td></tr>
 </table>
 
+### 🚀 Live Demo
+
+**[👉 Try Tazavesh Now](https://tazavesh.agent-gateway.workers.dev/chat)**
+
+No installation required. Just visit and start chatting. Powered by Cloudflare Workers AI (Llama 3.1) — completely free.
+
 ---
 
 ## ⭐ Recommended: Xiaomi MiMo
