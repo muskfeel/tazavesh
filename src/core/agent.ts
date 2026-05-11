@@ -109,55 +109,76 @@ export class Agent {
   }
 
   /**
-   * 调用模型
+   * 调用模型 — 优先使用 Cloudflare Workers AI（免费），有 Key 时用 MiMo
    */
   private async callModel(
     messages: ChatMessage[],
     _tools: Array<{ type: "function"; function: Record<string, unknown> }>,
     useTools: boolean = false
   ): Promise<ModelResponse> {
+    // 方案1: Cloudflare Workers AI（免费，无需 API Key）
+    if (this.env.AI) {
+      try {
+        const response = await this.env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          max_tokens: 4096,
+          temperature: 0.7,
+        });
+
+        return {
+          choices: [{
+            message: {
+              role: "assistant",
+              content: response.response || "",
+            },
+            finish_reason: "stop",
+          }],
+        };
+      } catch (e) {
+        console.error("Workers AI error, falling back to MiMo:", e);
+      }
+    }
+
+    // 方案2: MiMo（需要 API Key）
     const apiKey = this.env.MIMO_API_KEY;
-    if (!apiKey) {
-      throw new Error("MIMO_API_KEY not configured");
+    if (apiKey) {
+      const body: Record<string, unknown> = {
+        model: "mimo-v2.5-pro",
+        messages,
+        max_tokens: 4096,
+        temperature: 0.7,
+      };
+
+      const response = await fetch("https://token-plan-sgp.xiaomimimo.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        return response.json() as Promise<ModelResponse>;
+      }
     }
 
-    const body: Record<string, unknown> = {
-      model: "mimo-v2.5-pro",
-      messages,
-      max_tokens: 4096,
-      temperature: 0.7,
-    };
-
-    // Only add tools if explicitly requested and model supports it
-    // MiMo currently doesn't support function calling, so we handle tools differently
-    if (useTools && false) {  // Disabled until MiMo supports function calling
-      body.tools = _tools;
-      body.tool_choice = "auto";
-    }
-
-    const response = await fetch("https://token-plan-sgp.xiaomimimo.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Model API error:", response.status, error);
-      throw new Error(`Model API error: ${response.status}`);
-    }
-
-    return response.json() as Promise<ModelResponse>;
+    throw new Error("No model available — set MIMO_API_KEY or ensure Workers AI is enabled");
   }
 
   /**
    * 构建系统提示
    */
   private buildSystemPrompt(userFacts: string[]): string {
+    const modelName = this.env.AI ? "Cloudflare Workers AI (Llama 3.1)" : "Xiaomi MiMo-V2.5-Pro";
+
     let prompt = `你是 Tazavesh，一个运行在 Cloudflare Workers 上的智能助手。
+你基于 ${modelName} 模型运行。
+
+## 重要规则
+- 当用户问你是什么模型时，回答：我是 Tazavesh，基于 ${modelName} 运行
+- 不要声称自己是 GPT、Claude 或其他模型
+- 你的身份是 Tazavesh，不是其他任何 AI
 
 ## 核心能力
 
